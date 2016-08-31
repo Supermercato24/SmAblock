@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "SmAblock",
+  "short_name": "Ablock",
+  "version": "0.0.2",
+  "description": "This extension block something :)",
+  "browser_action": {
+    "default_icon": "icon_32.png"
+  },
+  "icons": {
+    "32": "icon_32.png",
+    "128": "icon_128.png"
+  },
+  "author": [
+    {
+      "name": "francesco",
+      "email": "francesco@supermercato24.it"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "*://*.supermercato24.it/"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "options_page": "options.html",
+  "offline_enabled": false
+}
