@@ -23,35 +23,43 @@ var cats = [
   'https://pixabay.com/static/uploads/photo/2014/08/02/23/52/siamese-cat-408746__180.jpg',
   'https://pixabay.com/static/uploads/photo/2015/04/16/15/21/cat-725793__180.jpg' ];
 var catsLength = cats.length;
-var cancel = false;
+var filter = {
+  urls: [ '*://*.supermercato24.it/asset/sm*' ],
+  types: [ chrome.webRequest.ResourceType.IMAGE ]
+};
+var opt_extraInfoSpec = [ 'blocking' ];
 
-// add storage option to global var
 chrome.storage.sync.get({
   like: true
 }, function(items) {
 
-  cancel = !items.like;
+  var cancel = !items.like;
+  if (cancel === true) {
+    chrome.webRequest.onBeforeRequest.addListener(cancelRequest, filter,
+      opt_extraInfoSpec);
+  } else {
+    chrome.webRequest.onBeforeRequest.addListener(redirectRequest, filter,
+      opt_extraInfoSpec);
+  }
 });
 
 /**
- * webRequest for in-fly request. webRequestBlocking permission
+ * webRequest callback for in-fly request. webRequestBlocking permission
  * 
  * @returns
  */
-chrome.webRequest.onBeforeRequest.addListener(function(request) {
+function cancelRequest(request) {
 
-  if (cancel === true) {
-    return {
-      cancel: cancel
-    };
-  }
+  return {
+    cancel: true
+  };
+}
+function redirectRequest(request) {
+
   return {
     redirectUrl: cats[~~(Math.random() * catsLength)]
   };
-}, {
-  urls: [ '*://*.supermercato24.it/asset/sm*' ],
-  types: [ chrome.webRequest.ResourceType.IMAGE ]
-}, [ 'blocking' ]);
+}
 
 /**
  * onChanged storage listener. If different change global var
@@ -61,6 +69,16 @@ chrome.webRequest.onBeforeRequest.addListener(function(request) {
 chrome.storage.onChanged.addListener(function(changes) {
 
   if (changes.like.newValue != changes.like.oldValue) {
-    cancel = !changes.like.newValue;
+    var cancel = !changes.like.newValue;
+
+    if (cancel === true) {
+      chrome.webRequest.onBeforeRequest.removeListener(redirectRequest);
+      chrome.webRequest.onBeforeRequest.addListener(cancelRequest, filter,
+        opt_extraInfoSpec);
+    } else {
+      chrome.webRequest.onBeforeRequest.removeListener(cancelRequest);
+      chrome.webRequest.onBeforeRequest.addListener(redirectRequest, filter,
+        opt_extraInfoSpec);
+    }
   }
 });
